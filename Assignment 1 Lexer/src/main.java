@@ -1,9 +1,13 @@
-//tester
 public class main {
+    public static void main(String[] args) {
+        Lexer input = new Lexer("test.txt");
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
+        while (!input.isComplete()) {
+            System.out.printf("%-10s %s\n", input.currentToken(), input.Peak());
+            input.Advance();
+        }
+       if(input.isComplete()) {
+    	   System.out.printf("%-10s %s\n", "TOK0", "\"\"");
+       }
+    }
 }
