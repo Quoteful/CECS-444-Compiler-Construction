@@ -1,0 +1,157 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Stream;
+
+/**
+* This Lexer class works on creating tokens from words on the given text file.
+*
+*
+*/
+public class Lexer {
+    private StringBuilder input = new StringBuilder();
+    private Token token;
+    private String inputstream;
+    private int linenum = 1;
+    
+    /*CHANGE TEXT FILE HERE*/
+    private String filepath = "Test Function #3.txt";
+    private boolean complete = false;
+    private Set<Character> empty = new HashSet<Character>();
+    //Reads the text file line by line
+    public Lexer() {
+        try (Stream<String> st = Files.lines(Paths.get(filepath))) {
+            st.forEach(input::append);
+        } catch (IOException ex) {
+        	complete = true;
+            return;
+        }
+   
+        empty.add('\r'); //return
+        empty.add('\n'); //enter
+        empty.add((char) 8); //backspace
+        empty.add((char) 9); //tab
+        empty.add((char) 11); //vertical tab
+        empty.add((char) 12); //new page
+        empty.add((char) 32); //removes start characters
+        Advance();
+    }
+    /**
+    *This advance function moves onto the next character.
+    *
+    *
+    */
+    public void Advance() {
+        if (complete) {
+            return;
+        }
+        if (input.length() == 0) {
+        	complete = true;
+            return;
+        }
+
+        ignoreWhiteSpace();
+        if (findNextToken()) {
+            return;
+        }
+
+        complete = true;
+    }
+    /**
+    *This ignoreWhiteSpace function ignores any blank spaces in the text.
+    *
+    *
+    */
+    private void ignoreWhiteSpace() {
+        int whiteSpace= 0;
+
+        while (empty.contains(input.charAt(whiteSpace))) {
+        	whiteSpace++;
+        }
+
+        if (whiteSpace > 0) {
+            input.delete(0, whiteSpace);
+        }
+    }
+    /**
+    *This findNextToken function gets the next token once it reaches 
+    *the end of one token.
+    *
+    */
+    private boolean findNextToken() {
+        for (Token t : Token.values()) {
+            int end = t.endOfMatch(input.toString());
+
+            if (end != -1) {
+                token = t;
+                inputstream = input.substring(0, end);
+                input.delete(0, end);
+                return true;
+            }
+        }
+
+        return false;
+    }
+    //returns the current Token word
+    public Token currentToken() {
+        return token;
+    }
+    //returns a copy of the next character in the input stream
+    public String Peak() {
+        return inputstream;
+    }
+
+    //returns the boolean value of complete
+    public boolean isComplete() {
+        return complete;
+    }
+ 
+	public int lineNumber() throws FileNotFoundException{
+		File file = new File(filepath);
+		int lineNumber = 0;
+		Scanner inputFile = new Scanner(file);
+		while (inputFile.hasNext()){
+		String name = inputFile.nextLine();
+		lineNumber++;
+		}
+		int totalLines = lineNumber;
+		if(totalLines > 1){
+		   if(Peak().equals(";") || Peak().equals("{")){
+		   linenum++;
+			   }
+		   }
+
+		   inputFile.close();
+    	
+    return linenum;
+    }
+}
+
+//_______________________________________________________________________________
+
+import java.io.FileNotFoundException;
+
+/**        
+ * Tester.java
+ * 
+ *  This is the main runnable class that displays all the tokens that are processed from the given text file. 
+ */
+public class Tester {
+    public static void main(String[] args) throws FileNotFoundException {
+        Lexer input = new Lexer();
+      
+        while (!input.isComplete()) {
+	   System.out.printf("(Tok: %5s %2s\n", input.currentToken(), ("line= " + input.lineNumber()) + (" str= \"" + input.Peak() + "\")"));  
+       input.Advance();   	         
+       }
+        
+       if(input.isComplete()) {	
+			System.out.printf("%5s %2s\n",  "(Tok: TOKEN0 line=", input.lineNumber() + " str= \"\")");	
+       }	
+    }
+}
